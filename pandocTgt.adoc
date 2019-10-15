@@ -1,0 +1,192 @@
+:source-highlighter: coderay
+= Pre-installation Guide (extract, example)
+
+== Configure the Windows application event log
+
+NOTE: A8 uses the Windows Event log to record data load and application failures.
+
+.Alternatively, use a command line to enter ...
+[source,HTML]
+----
+wevtutil sl Application /ms:20480
+wevtutil sl Application /r:false /ab:false
+----
+
+
+.Within Windows 
+. [*Start Menu*], navigate to _Administrative
+Tools»Event Viewer_
+. Select *Windows Logs»Application*
+. [*right click] Properties* and select *General Tab*
+The _General Tab_ is displayed
+. Check the settings are as follows (defaults) and correct if necessary:
+.. Enter 20480 as _Maximum log size (KB)_
+.. Select _Overwrite events_ as needed (oldest events first)
+. *Ok* to save changes and exit
+
+== Configure the SMTP relay
+
+The local SMTP virtual server delivers email through an external email server. You will now configure the SMTP virtual server to relay email to this upstream server.
+
+TIP: EN recommend relaying email from the web server to the external email server via the application server (rather than configuring it to connect directly to the external email server).
+
+NOTE: You must grant all of your A8 application servers relay permissions to the upstream external email server.
+
+. Within Windows Start Menu, navigate to Administrative Tools»Internet Information Services (IIS) Manager
+  image:Extract%20A8%20Pre-installation%20guide_files/image011.gif[Adding logging to the SMTP server,width=205,height=229]
+. [right click]SMTP Virtual Server and select *Properties*
+. Within the _Delivery tab_, select *Advanced*
+. Within the _Advanced dialog_, Input *<SMTPhostName>* (for example, smtp.acme.com) as Smart host
++
+TIP: If DNS name resolution is unavailable., input the IP address [<SMTPhostIP>] as Smart hostlink:#_ftn1[[1]].
+
+. Within the General Tab, select *Enable Logging*
+. Within the General Tab, *[click]* *Properties*
++
+The Logging properties panel is displayed
++
+image:Extract%20A8%20Pre-installation%20guide_files/image012.gif[http://www.sherweb.com/blog/files/uploads/logging-properties.png,width=205,height=197]
+
+. Within the _Logging properties_' _Advanced tab_, set the following _Extended logging options_:
+- Date
+- Time
+- Client IP Address
+- Method
+- URL Stem
+- Protocol Status
+- Protocol Sub status
+- Win32 Status
+
+
+
+== 1.3. Install Oracle database client
+
+[width="100%",cols="100%",]
+|==
+a|
+image:Extract%20A8%20Pre-installation%20guide_files/image008.gif[*,width=11,height=11]
+Missing oraodm12.dll
+
+Executing sqlldr.exe from 12.1 Client fails with error :'oraodm12.dll is
+missing from your computer'
+
+See Oracle support Documentid 1593348.1 for the corrective action.
+
+|==
+
+image:Extract%20A8%20Pre-installation%20guide_files/image004.gif[*,width=11,height=11]
+You must be logged-in as an administrator to do this. +
+Do not use Oracle Universal Installer from an earlier Oracle product
+release to install this component.
+
+Consult Oracle’s installation instructions for your release of Oracle DB
+Client and install using the parameters specified in Table 10 (below).
+Use Next to continue through the installation panels.
+
+Download link at time of writing::
+http://www.oracle.com/technetwork/database/enterprise-edition/downloads/database12c-win64-download-2297732.html
+
+Download file: winx64_12102_client.zip.
+
+ 
+
+Table 10: Oracle database client parameters
+
+[width="100%",cols="50%,50%",options="header",]
+|==
+|Panel name |Value or selection
+|Select Installation Type |Select Custom options:\{Instant client;
+Administrator; Runtime; Custom;}
+
+|Select product language |Choose an appropriate language.
+
+|Oracle Home user a|
+Specify a Windows user to own all the windows services run by Oracle
+database software or have the installer create one for you.
+
+Alternatively select Use Windows Built-in Account if you do not specify
+an Oracle Home User during installation. Then the services for the
+Oracle home run as the LocalService or LocalSystem user.
+
+|Specify Installation location a|
+image:Extract%20A8%20Pre-installation%20guide_files/image004.gif[*,width=9,height=9]
+Do not include spaces in the path name
+
+Choose to accept the default ORACLE_BASE path, or change to your own
+requirements.
+
+|Software location a|
+image:Extract%20A8%20Pre-installation%20guide_files/image004.gif[*,width=9,height=9]
+Do not include spaces in the path name
+
+image:Extract%20A8%20Pre-installation%20guide_files/image004.gif[*,width=9,height=9]
+This must be a new ORACLE_HOME.
+
+Enter your ORACLE_HOME directory name as Name
+
+Enter the path to your ORACLE_HOME directory as Path
+
+|Available Product Components a|
+#BEGIN 6096 (Sugar 481)
+
+Select the following components for a custom install of Oracle 12c
+Client:
+
+• Oracle DB Utilities
+
+• SQL *Plus
+
+• Oracle Net
+
+#END 6096 (Sugar 481)
+
+|Product-specific Prerequisite Checks |Correct any errors highlighted by
+Oracle Universal Installer
+
+|Summary a|
+Verify the displayed options are as required.
+
+Install to continue.
+
+|==
+
+The set up process continues to completion.
+
+== 1.4. Configure tnsnames
+
+Check the file ORACLE_HOME\NETWORK\ADMIN\tnsnames.ora is correctly
+configured and correct any discrepancies if necessary.
+
+<DB_GlobalName> = +
+(DESCRIPTION = +
+(ADDRESS = (PROTOCOL = TCP)(HOST = <DB_HOST>)(PORT = 1521)) +
+(CONNECT_DATA = +
+(SERVER = DEDICATED) +
+(SERVICE_NAME = <DB_SID>)
+
+The values of <DB_GlobalName>,<DB_HOST> and <DB_SID> must match those
+used when the A8 database was created.
+
+The Port must match that specified for the database listener on the Db
+server.
+
+== 1.5. Configure Environment variables
+
+{empty}1. Set the Java home environment variable:
+
+JAVA_HOME=c:\Program Files\Java\jre8.0
+
+image:Extract%20A8%20Pre-installation%20guide_files/image002.gif[*,width=12,height=12]
+If the pathname contains a space, use the shortened version (that is
+C:\Progra~1\Java\jre8.0).
+
+{empty}2. Set TNS_ADMIN to point to the folder containing the file
+tnsnames.ora.
+
+== 1.6. Prepare LDAP server
+
+ +
+
+'''''
+
+link:#_ftnref1[[1]] Note the use of [ ] around the IP address.
